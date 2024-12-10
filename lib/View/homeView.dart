@@ -1,92 +1,118 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:tripdraw/Widget/newProjectWidget.dart';
+import 'package:tripdraw/Widget/homeMainwidget.dart';
+import 'package:tripdraw/Widget/youtubeUrlWidget.dart';
 import 'package:tripdraw/style.dart' as style;
-import '../../data/stroyboard_data.dart';
-import '../Widget/storyboardArchiveTile.dart';
-import 'package:lottie/lottie.dart';
 
-class HomeView extends StatelessWidget {
+import '../Widget/goAroundWidget2.dart';
+import '../tutorial/tutorialView.dart';
+import 'Guide/cameraGuideView.dart';
+
+class HomeView extends StatefulWidget {
   HomeView({super.key});
 
-  // 샘플 데이터 생성
-  final List<String> items = List<String>.generate(2, (index) => 'Item $index');
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+
+  final List<String> bannerImages = [
+    'images/guidebanner_1_3.png',
+    'images/guidebanner2.png',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    Timer.periodic(Duration(seconds: 3), (Timer timer) {
+      if (_currentPage < bannerImages.length - 1) {
+        _currentPage++;
+      } else {
+        _currentPage = 0;
+      }
+      _pageController.animateToPage(
+        _currentPage,
+        duration: Duration(milliseconds: 500),
+        curve: Curves.easeIn,
+      );
+    });
+  }
+  void _onBannerTap(int index) {
+    // Example: Navigate to a different screen or perform an action based on the index
+    if (index == 0) {
+      // Navigate to the first guide or perform a specific action
+      Get.to(() => CameraGuideView());
+    } else if (index == 1) {
+      Get.to(() => TutorialView());
+    }
+  }
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 10.w),
-      child: Column(
-        children: [
-          Expanded(
-            child: Lottie.asset(
-              'assets/Animation - 1731031590663.json', // 원하는 가로 크기
-              height: 500, // 원하는 세로 크기
-              fit: BoxFit.fill,
-            ),
-          ),
-          NewProjectWidget(),
-          Flexible(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "인기 영상",
-                  style: style.theme.textTheme.titleLarge,
-                ),
-                Expanded(
-                  child: GridView.builder(
-                    gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                      maxCrossAxisExtent: 200.w, // 아이템의 최대 너비
-                      childAspectRatio: 16 / 9, // 너비 대비 높이 비율
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                    ),
-                    itemCount: 4,
-                    itemBuilder: (context, index) {
-                      return Container(
-                        color: Colors.grey,
-                        child: Center(
-                          child: Text(
-                            'Item $index',
-                            style: TextStyle(color: Colors.white),
+      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 20.w),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Stack with Lottie animation and overlay text
+            HomeMainWidget(),
+            SizedBox(
+              height: 100.h, // Set banner height
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: bannerImages.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                      padding:
+                          EdgeInsets.symmetric(vertical: 10.h, horizontal: 5.w),
+                      child: GestureDetector(
+                        onTap: (){
+                          _onBannerTap(index);
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            height: 70.h,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(6),
+                              image: DecorationImage(
+                                image: AssetImage(bannerImages[index]),
+                                fit: BoxFit.fitHeight, // 이미지를 꽉 채우기
+                              ),
+                            ),
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ],
+                      ),);
+                },
+              ),
             ),
-          ),
-          Flexible(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "내 아카이브",
-                  style: style.theme.textTheme.titleMedium,
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: items.length, // 항목의 개수를 정의
-                    itemBuilder: (context, index) {
-                      final storyboard = storyboards[index];
-                      return StoryBoardArchiveTile(
-                        title: storyboard.title,
-                        date: storyboard.createdAt,
-                        destination: storyboard.destination,
-                      );
-                    },
-                  ),
-                ),
-              ],
+            Text(
+              "스토리보드 둘러보기",
+              style: style.textTheme.displayLarge,
             ),
-          ),
-        ],
+            GoAroundwidget2(),
+            SizedBox(
+              height: 5.h,
+            ),
+            YoutubeUrlWidget(),
+            SizedBox(
+              height: 12.h,
+            
+            ),
+          ],
+        ),
       ),
     );
   }
