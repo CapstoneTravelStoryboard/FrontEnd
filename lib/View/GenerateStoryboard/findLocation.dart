@@ -145,14 +145,14 @@ class _FindLocationViewState extends State<FindLocationView> {
     print('province:$province, district:$district');
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/api/v1/landmarks?province=$province&district=$district'),
+        Uri.parse('${AppConfig.baseUrl}/api/v1/landmarks?province=${province}&district=${district}'),
       );
 
-
+      print('${AppConfig.baseUrl}/api/v1/landmarks?province=${province}&district=${district}');
       if (response.statusCode == 200) {
         // final List<dynamic> data = jsonDecode(response.body);
         final decodedBody = utf8.decode(response.bodyBytes); // body 대신 bodyBytes 사용
-        List<dynamic> data = jsonDecode(decodedBody);
+        final List<dynamic> data = jsonDecode(decodedBody);
         print(data);
 
 
@@ -164,7 +164,7 @@ class _FindLocationViewState extends State<FindLocationView> {
           };
         }).toList();
 
-        print(fetchedLandmarks);
+        print('fetchedLandmark : $fetchedLandmarks');
 
         setState(() {
           landmarkObj = fetchedLandmarks; // 전체 랜드마크 리스트
@@ -225,8 +225,9 @@ class _FindLocationViewState extends State<FindLocationView> {
 
     // 선택된 location을 파싱하여 province와 district로 분리
     final parts = selectedLocation!.split(' ');
-    final province = parts[0].replaceAll('도', '').replaceAll('특별시', '').replaceAll('광역시', '').replaceAll('특별자치도', '');
+    final province = parts[0].replaceAll(RegExp(r'[도|특별시|광역시|특별자치도]'), '');
     final district = parts.length > 1 ? parts[1] : '';
+
 
     // API 호출
     await _fetchLandmarks(province, district);

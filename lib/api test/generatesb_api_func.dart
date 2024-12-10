@@ -24,6 +24,7 @@ Future<List<String>> fetchThemesFromAPI(String url) async {
   }
 }
 
+
 Future<List<String>> sendDataForTitle(Map<String, dynamic> body) async {
   final url = Uri.parse(
       '${AppConfig.baseUrl}/api/v1/recommendations/titles');
@@ -57,6 +58,33 @@ Future<List<String>> sendDataForTitle(Map<String, dynamic> body) async {
   }
 }
 
+Future<Map<String, dynamic>> sendDataForIotro(Map<String, dynamic> body) async {
+  final url = Uri.parse('${AppConfig.baseUrl}/api/v1/recommendations/iotros');
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        "ngrok-skip-browser-warning": "69420",
+      },
+      body: json.encode(body),
+    );
+
+    if (response.statusCode == 200) {
+      final decodedBody = utf8.decode(response.bodyBytes); // Decode properly
+      final responseData = jsonDecode(decodedBody) as Map<String, dynamic>;
+      print('응답 데이터: $responseData');
+      return responseData;
+    } else {
+      print('오류: ${response.statusCode}');
+      return {};
+    }
+  } catch (e) {
+    print('예외 발생: $e');
+    return {};
+  }
+}
 
 
 Future<List<String>> sendDataForStoryboardTxt(Map<String, dynamic> body) async {

@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import './style.dart' as myStyle;
 import 'View/GenerateStoryboard/generateStoryboard.dart';
+import 'View/LogIn/loginView2.dart';
+import 'View/LogIn/signUp.dart';
 import 'View/mainView.dart';
 import 'api test/apiTestScreen.dart';
 
@@ -24,7 +26,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: myStyle.theme,
         // home: MainView(),
-        home: MainView(),),
+        home: LoginView(),),
     );
   }
 }

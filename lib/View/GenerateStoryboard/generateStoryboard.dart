@@ -145,7 +145,7 @@ class _GenerateStoryboardViewState extends State<GenerateStoryboardView> {
       });
     } else if (currentStep == steps.length - 1) {
       final realBody = {
-        'landmarkId': selectedLandmarkId,
+        'landmarkId': 1,
         'purpose': selectedThemes, // 선택된 테마를 전달
         'companions': selectedCompanions,
         'companionCount': companionCount,
