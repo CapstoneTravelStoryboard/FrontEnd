@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'dart:convert';
+import 'package:get/get.dart';
+import 'package:tripdraw/View/LogIn/loginView2.dart';
+
+import '../../api test/login_api.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -9,11 +14,11 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final TextEditingController idController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   final TextEditingController emailController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
   String? selectedEmailDomain;
 
   final ValueNotifier<bool> isButtonEnabled = ValueNotifier(false);
@@ -21,32 +26,50 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   void initState() {
     super.initState();
-    // 모든 컨트롤러의 변화 감지
-    idController.addListener(_validateInputs);
+    nameController.addListener(_validateInputs);
     passwordController.addListener(_validateInputs);
     confirmPasswordController.addListener(_validateInputs);
     emailController.addListener(_validateInputs);
-    phoneController.addListener(_validateInputs);
   }
 
   void _validateInputs() {
-    final isFormValid = idController.text.isNotEmpty &&
+    final isFormValid =
+       nameController.text.isNotEmpty &&
         passwordController.text.isNotEmpty &&
         confirmPasswordController.text == passwordController.text &&
-        emailController.text.isNotEmpty &&
-        phoneController.text.isNotEmpty &&
-        selectedEmailDomain != null;
+        emailController.text.isNotEmpty;
     isButtonEnabled.value = isFormValid;
+  }
+
+  void _handleSignUp() async {
+    final body = {
+      'name': nameController.text,
+      'email': emailController.text + selectedEmailDomain!,
+      'password': passwordController.text,
+      'passwordConfirm': confirmPasswordController.text,
+    };
+  print(body);
+    final result = await signUp(body);
+
+    if (result.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('회원가입 성공: $result')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('회원가입 실패')),
+      );
+    }
+
+    Get.to(() => LoginView());
   }
 
   @override
   void dispose() {
-    // 컨트롤러 해제
-    idController.dispose();
+    nameController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
     emailController.dispose();
-    phoneController.dispose();
     super.dispose();
   }
 
@@ -56,53 +79,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
       body: Padding(
         padding: EdgeInsets.fromLTRB(16.w, 50.h, 20.w, 16.h),
         child: ListView(
-          // crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               '회원가입',
               style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 10.h),
-            // 아이디
-            Text('아이디'),
+            SizedBox(height: 20.h),
+
+            Text('이름'),
             TextField(
-              controller: idController,
+              controller: nameController,
+              obscureText: false,
               decoration: InputDecoration(
-                hintText: '아이디',
-                helperText: '4~12자/영문 소문자(숫자 조합 가능)',
-                suffix: ElevatedButton(
-                  onPressed: () {
-                    // 중복 확인 동작
-                  },
-                  child: Text('중복확인'),
-                ),
+                hintText: '이름',
               ),
             ),
-            SizedBox(height: 16.0),
 
-            // 비밀번호
-            Text('비밀번호'),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: '비밀번호',
-                helperText: '6~20자/영문 대문자, 소문자, 숫자, 특수문자 중 2가지 이상 조합',
-              ),
-            ),
             SizedBox(height: 16.0),
-
-            // 비밀번호 확인
-            TextField(
-              controller: confirmPasswordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: '비밀번호 확인',
-              ),
-            ),
-            SizedBox(height: 16.0),
-
-            // 이메일
             Text('이메일'),
             Row(
               children: [
@@ -115,7 +108,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 SizedBox(width: 8.0),
                 DropdownButton<String>(
                   value: selectedEmailDomain,
-                  items: ['@naver.com', '@gmail.com']
+                  items: ['@naver.com', '@gmail.com', '@kakao.com']
                       .map((String value) => DropdownMenuItem<String>(
                     value: value,
                     child: Text(value),
@@ -131,55 +124,62 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ],
             ),
-            SizedBox(height: 8.0),
-            Text(
-              '더 안전하게 계정을 보호하려면 가입 후 [내정보 > 회원정보 수정]에서 이메일 인증을 진행해주세요.',
-              style: TextStyle(fontSize: 12.0, color: Colors.grey),
+            SizedBox(height: 16.0),
+            Text('비밀번호'),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                hintText: '비밀번호',
+                helperText: '6~20자/영문 대문자, 소문자, 숫자, 특수문자 중 2가지 이상 조합',
+              ),
             ),
             SizedBox(height: 16.0),
-
-            // 휴대폰 번호
-            Text('휴대폰 번호'),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: phoneController,
-                    decoration: InputDecoration(hintText: '휴대폰 번호'),
-                  ),
-                ),
-                SizedBox(width: 8.0),
-                ElevatedButton(
-                  onPressed: () {
-                    // 인증번호 받기 동작
-                  },
-                  child: Text('인증번호 받기'),
-                ),
-              ],
+            TextField(
+              controller: confirmPasswordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                hintText: '비밀번호 확인',
+              ),
             ),
-            SizedBox(height: 50.h,),
-
-            // 가입하기 버튼
+            SizedBox(height: 60.h),
+            GestureDetector(
+              child: Text("입력확인"),
+              onTap: (){
+                final body = {
+                  'name': nameController.text,
+                  'email': emailController.text + selectedEmailDomain!,
+                  'password': passwordController.text,
+                  'passwordConfirm': confirmPasswordController.text,
+                };
+                print(body);
+              },
+            ),
             ValueListenableBuilder<bool>(
               valueListenable: isButtonEnabled,
               builder: (context, isEnabled, child) {
                 return Center(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      minimumSize: Size(double.infinity, 50.h),
+                      minimumSize: Size(double.infinity, 40.h),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.r),
                       ),
-                      backgroundColor: isEnabled ? Colors.blue : Colors.grey,
+                      backgroundColor:
+                          isEnabled ? Colors.blue : Colors.grey[200],
                     ),
-                    onPressed: isEnabled
-                        ? () {
-                      // 가입하기 동작
-                    }
-                        : null,
+                    onPressed: () {
+                      isEnabled ? _handleSignUp : null; // 로직 추가시
+                      // _handleSignUp;
+                      print('signup');
+                    },
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10.h),
-                      child: Text('가입하기'),
+                      padding: EdgeInsets.symmetric(vertical: 5.h),
+                      child: Text(
+                        '가입하기',
+                        style: TextStyle(
+                            color: isEnabled ? Colors.white : Colors.grey),
+                      ),
                     ),
                   ),
                 );

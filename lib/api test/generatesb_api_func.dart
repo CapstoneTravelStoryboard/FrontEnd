@@ -24,17 +24,16 @@ Future<List<String>> fetchThemesFromAPI(String url) async {
   }
 }
 
-
 Future<List<String>> sendDataForTitle(Map<String, dynamic> body) async {
-  final url = Uri.parse(
-      '${AppConfig.baseUrl}/api/v1/recommendations/titles');
+  final url = Uri.parse('${AppConfig.baseUrl}/api/v1/recommendations/titles');
 
   try {
     final response = await http.post(
       url,
       headers: {
         'Content-Type': 'application/json',
-        "ngrok-skip-browser-warning": "69420"
+        "ngrok-skip-browser-warning": "69420",
+        // 'Authorization': 'Bearer $getToken',
       },
       body: json.encode(body),
     );
@@ -42,7 +41,8 @@ Future<List<String>> sendDataForTitle(Map<String, dynamic> body) async {
     if (response.statusCode == 200) {
       // 응답 데이터를 JSON으로 디코드 후 String List로 변환
       // final responseData = json.decode(response.body);
-      final decodedBody = utf8.decode(response.bodyBytes); // body 대신 bodyBytes 사용
+      final decodedBody =
+          utf8.decode(response.bodyBytes); // body 대신 bodyBytes 사용
       final responseData = jsonDecode(decodedBody);
       List<String> result =
           List<String>.from(responseData.map((item) => item.toString()));
@@ -85,7 +85,6 @@ Future<Map<String, dynamic>> sendDataForIotro(Map<String, dynamic> body) async {
     return {};
   }
 }
-
 
 Future<List<String>> sendDataForStoryboardTxt(Map<String, dynamic> body) async {
   final url = Uri.parse('${AppConfig.baseUrl}/api/v1/storyboads');

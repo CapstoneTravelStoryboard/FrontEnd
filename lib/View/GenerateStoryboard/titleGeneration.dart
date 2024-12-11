@@ -166,12 +166,6 @@ class _TitleGenerationState extends State<TitleGeneration>
                 },
               ),
             ),
-            IconButton(
-              icon: Icon(Icons.refresh),
-              onPressed: () {
-                // Action for reloading or regenerating titles
-              },
-            ),
             SizedBox(height: 20.h),
             Row(
               children: [

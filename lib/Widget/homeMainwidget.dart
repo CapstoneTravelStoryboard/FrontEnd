@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:tripdraw/View/LogIn/loginView2.dart';
 import 'package:tripdraw/Widget/newStoryboardButton.dart';
 import 'package:tripdraw/style.dart' as style;
 import '../View/Archive/archiveView.dart';
@@ -8,42 +9,10 @@ import 'package:lottie/lottie.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class HomeMainWidget extends StatelessWidget {
-  final String googleLoginUrl = "https://your-api.com/auth/google";
   const HomeMainWidget({super.key});
-  // URL 실행 함수
-  Future<void> launchGoogleLoginUrl() async {
-    final Uri url = Uri.parse(googleLoginUrl);
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      throw 'Could not launch $googleLoginUrl';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    Future<void> loginProcess() async {
-      print('press');
-      try {
-        await launchGoogleLoginUrl();
-      } catch (e) {
-        // URL 실행 실패 처리
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Error'),
-            content: Text('Failed to open Google login: $e'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text('OK'),
-              ),
-            ],
-          ),
-        );
-      }
-    }
 
     return Column(
       children: [
@@ -52,7 +21,8 @@ class HomeMainWidget extends StatelessWidget {
           children: [
             InkWell(
               onTap: () {
-                loginProcess();
+                print('login');
+                Get.to(()=>LoginView());
               },
               child: Container(
                 height: 25.h,
