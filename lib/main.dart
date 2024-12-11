@@ -25,8 +25,8 @@ class MyApp extends StatelessWidget {
         title: 'TripSketch',
         debugShowCheckedModeBanner: false,
         theme: myStyle.theme,
-        // home: MainView(),
-        home: ApiPostTestScreen(), // home: LoginView(),
+        home: MainView(),
+        // home: ApiPostTestScreen(), // home: LoginView(),
       ),
     );
   }

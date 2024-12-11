@@ -1,69 +1,89 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:tripdraw/api%20test/tokenStorage.dart';
 import 'package:tripdraw/config/appConfig.dart';
 
-Future<List<String>> signUp(Map<String, dynamic> body) async {
+import 'package:get/get.dart';
+
+Future<String> signUp(Map<String, dynamic> body) async {
   final url = Uri.parse('${AppConfig.baseUrl}/api/v1/members/signup');
 
   try {
     final response = await http.post(
       url,
-      headers: {'Content-Type': 'application/json',
-      'Cookie':'JSESSIONID='},
+      headers: {'Content-Type': 'application/json'},
       body: json.encode(body),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       // 응답 데이터를 JSON으로 디코드 후 String List로 변환
       final responseData = json.decode(response.body);
-      List<String> result = List<String>.from(responseData.map((item) => item.toString()));
-      print('응답 데이터: $result');
-      return result;
+      print('응답 데이터: $responseData');
+      return responseData;
     } else {
       print('오류: ${response.statusCode}');
-      return [];
+      return '';
     }
   } catch (e) {
     print('예외 발생: $e');
-    return [];
+    return '';
   }
 }
 
-
-
-Future<void> login(
-    BuildContext context, {
-      required String email,
-      required String password,
-    }) async {
+Future<Map<String, dynamic>> login(Map<String, dynamic> body) async {
   final url = Uri.parse('${AppConfig.baseUrl}/api/v1/members/login');
 
   try {
     final response = await http.post(
       url,
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({'email': email, 'password': password}),
+      body: json.encode(body),
     );
 
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
-      final String token = responseData['token'];
-      final Map<String, dynamic> member = responseData['member'];
-
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("로그인 성공: ${member['name']}님 환영합니다!")),
-      );
-
+      print('응답 데이터: $responseData');
+      return responseData; // JSON 데이터를 반환
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("로그인 실패: ${response.statusCode}")),
-      );
+      print('오류: ${response.statusCode}');
+      return {'error': '로그인 실패', 'statusCode': response.statusCode};
     }
   } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("로그인 중 오류 발생: $e")),
+    print('예외 발생: $e');
+    return {'error': '예외 발생', 'exception': e.toString()};
+  }
+}
+
+void handleLogin(BuildContext context, loginBody) async {
+  final result = await login(loginBody);
+
+  if (result.containsKey('token')) {
+    // 로그인 성공
+    final token = result['token'];
+    final member = result['member'];
+    print("token ${token}");
+
+    // Token 저장
+    final tokenStorage = TokenStorage();
+    tokenStorage.saveToken(token);
+
+    // 로그인 성공 메시지
+    Get.snackbar(
+      '로그인 성공',
+      '${member['name']}님 환영합니다!',
+      snackPosition: SnackPosition.BOTTOM,
+    );
+  } else {
+    // 로그인 실패 메시지
+    final errorMessage = result['error'] ?? '알 수 없는 오류';
+    final statusCode = result['statusCode'] ?? 'N/A';
+
+    Get.snackbar(
+      '로그인 실패',
+      '에러: $errorMessage (상태 코드: $statusCode)',
+      snackPosition: SnackPosition.BOTTOM,
     );
   }
+
 }

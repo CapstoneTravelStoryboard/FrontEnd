@@ -48,10 +48,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
       'password': passwordController.text,
       'passwordConfirm': confirmPasswordController.text,
     };
-  print(body);
+  print('signup body : ${body}');
     final result = await signUp(body);
 
-    if (result.isNotEmpty) {
+    if (result.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('회원가입 성공: $result')),
       );
@@ -61,7 +61,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
     }
 
-    Get.to(() => LoginView());
+    Get.offAll(() => LoginView());
   }
 
   @override
@@ -131,7 +131,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               obscureText: true,
               decoration: InputDecoration(
                 hintText: '비밀번호',
-                helperText: '6~20자/영문 대문자, 소문자, 숫자, 특수문자 중 2가지 이상 조합',
+                // helperText: '6~20자/영문 대문자, 소문자, 숫자, 특수문자 중 2가지 이상 조합',
               ),
             ),
             SizedBox(height: 16.0),
@@ -165,26 +165,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10.r),
                       ),
-                      backgroundColor:
-                          isEnabled ? Colors.blue : Colors.grey[200],
+                      backgroundColor: isEnabled ? Colors.blue : Colors.grey[200],
                     ),
-                    onPressed: () {
-                      isEnabled ? _handleSignUp : null; // 로직 추가시
-                      // _handleSignUp;
-                      print('signup');
-                    },
+                    onPressed: isEnabled ? _handleSignUp : null,
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 5.h),
                       child: Text(
                         '가입하기',
                         style: TextStyle(
-                            color: isEnabled ? Colors.white : Colors.grey),
+                          color: isEnabled ? Colors.white : Colors.grey,
+                        ),
                       ),
                     ),
                   ),
                 );
               },
             ),
+
           ],
         ),
       ),

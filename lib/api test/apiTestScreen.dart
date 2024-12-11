@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:tripdraw/api%20test/tokenStorage.dart';
 import '../config/appConfig.dart';
 
 class ApiPostTestScreen extends StatefulWidget {
@@ -112,6 +113,12 @@ class _ApiPostTestScreenState extends State<ApiPostTestScreen> {
       print("token ${token}");
       // Token을 SharedPreferences에 저장
       // await saveToken(token);
+      final tokenStorage = TokenStorage();
+
+      tokenStorage.saveToken(token);
+// Read token
+      String? savedtoken = tokenStorage.readToken();
+      print("Saved token: $savedtoken");
 
       // 로그인 성공 메시지
       ScaffoldMessenger.of(context).showSnackBar(
@@ -133,11 +140,6 @@ class _ApiPostTestScreenState extends State<ApiPostTestScreen> {
     "email": "string@naver.com",
     "password": "string",
     "passwordConfirm": "string"
-  };
-
-  Map<String, dynamic> request_body2 = {
-    "email": "string@naver.com",
-    "password": "string",
   };
 
   @override

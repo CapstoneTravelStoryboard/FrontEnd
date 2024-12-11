@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:tripdraw/View/LogIn/signUp.dart';
@@ -65,7 +67,11 @@ class _LoginViewState extends State<LoginView> {
                 onPressed: () {
                   final email = emailController.text.trim();
                   final password = passwordController.text.trim();
-                  login(context, email: email, password: password); // Call the login function
+                  final loginBody = {
+                    'email': email,
+                    'password': password,
+                  };
+                  handleLogin(context,loginBody);
                   Get.offAll(()=> MainView());
                 },
                 child: Padding(
