@@ -9,16 +9,22 @@ import 'package:tripdraw/View/GenerateStoryboard/dateSelectView.dart';
 import 'package:tripdraw/View/GenerateStoryboard/titleGeneration.dart';
 import 'package:get/get.dart';
 import 'package:tripdraw/config/appConfig.dart';
-import 'package:tripdraw/data/dummyJson.dart';
 
 import '../../api test/generatesb_api_func.dart';
+import '../../controller/tokenController.dart';
 
 class GenerateStoryboardView extends StatefulWidget {
-  const GenerateStoryboardView({super.key});
+  final int travelId;
+
+  GenerateStoryboardView({
+    Key? key,
+    required this.travelId, // 필드 travelId를 초기화
+  }) : super(key: key);
 
   @override
   State<GenerateStoryboardView> createState() => _GenerateStoryboardViewState();
 }
+
 
 class _GenerateStoryboardViewState extends State<GenerateStoryboardView> {
   int currentStep = 0;
@@ -145,22 +151,24 @@ class _GenerateStoryboardViewState extends State<GenerateStoryboardView> {
       });
     } else if (currentStep == steps.length - 1) {
       final realBody = {
-        'landmarkId': 1,
+        'landmarkId': selectedLandmarkId,
         'purpose': selectedThemes, // 선택된 테마를 전달
         'companions': selectedCompanions,
         'companionCount': companionCount,
         'season': _getSeason(startDate!),
       };
+      print(realBody);
 
       try {
         final List<String> responseList = await sendDataForTitle(realBody);
-        print('응답: $responseList');
         Get.to(() => TitleGeneration(
+              travelId: widget.travelId,
               companions: selectedCompanions,
+              companionCount: companionCount,
               season: _getSeason(startDate!),
               selectedLandmark: selectedLandmarkId,
-              startDate: startDate!.millisecondsSinceEpoch,
-              endDate: endDate!.millisecondsSinceEpoch,
+              startDate: startDate,
+              endDate: endDate,
               purpose: selectedThemes!,
               responseList: responseList,
             ));
@@ -194,58 +202,51 @@ class _GenerateStoryboardViewState extends State<GenerateStoryboardView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: EdgeInsets.fromLTRB(16.w, 50.h, 20.w, 16.h),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '스토리보드 생성',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              '원하는 정보를 선택해주세요',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            SizedBox(height: 10.h),
-            TweenAnimationBuilder<double>(
-              tween: Tween<double>(
-                  begin: currentStep / steps.length,
-                  end: (currentStep + 1) / steps.length),
-              duration: Duration(milliseconds: 500),
-              builder: (context, value, child) {
-                return LinearProgressIndicator(
-                  value: value,
-                  backgroundColor: Colors.grey[300],
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                );
-              },
-            ),
-            SizedBox(height: 10.h),
-            Expanded(
-              child: steps[currentStep],
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
-        child: Row(
-          children: [
-            if (currentStep > 0)
-              FloatingActionButton(
-                onPressed: previousStep,
-                child: Icon(Icons.arrow_back),
+    return WillPopScope(
+      onWillPop: () async {
+        if (currentStep > 0) {
+          previousStep();
+          return false;
+        }
+        return true;
+      },
+      child: Scaffold(
+        body: Padding(
+          padding: EdgeInsets.fromLTRB(16.w, 50.h, 20.w, 16.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '스토리보드 생성',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            Spacer(),
-            FloatingActionButton(
-              onPressed: isCurrentStepComplete ? nextStep2 : null,
-              child: Icon(Icons.arrow_forward),
-              backgroundColor:
-                  isCurrentStepComplete ? Colors.blue : Colors.grey,
-            ),
-          ],
+              SizedBox(height: 10.h),
+              Expanded(
+                child: steps[currentStep],
+              ),
+            ],
+          ),
+        ),
+        floatingActionButton: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
+          child: Row(
+            children: [
+              if (currentStep > 0)
+                FloatingActionButton(
+                  heroTag: 'prevStep',
+                  onPressed: previousStep,
+                  child: Icon(Icons.arrow_back),
+                ),
+              Spacer(),
+              FloatingActionButton(
+                heroTag: 'nextStep',
+                onPressed: isCurrentStepComplete ? nextStep2 : null,
+                child: Icon(Icons.arrow_forward),
+                backgroundColor:
+                    isCurrentStepComplete ? Colors.blue : Colors.grey,
+              ),
+            ],
+          ),
         ),
       ),
     );

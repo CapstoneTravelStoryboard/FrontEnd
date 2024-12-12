@@ -10,17 +10,21 @@ import '../../data/dummyJson.dart';
 import 'iotroGeneration.dart';
 
 class TitleGeneration extends StatefulWidget {
+  final int travelId;
   final String companions;
+  final int companionCount;
   final String season;
   final int? selectedLandmark;
-  final int startDate;
-  final int endDate;
+  final DateTime? startDate;
+  final DateTime? endDate;
   final String purpose;
   final List<String> responseList; // 추가된 응답값. 제목후보들이다
 
   TitleGeneration({
     super.key,
+    required this.travelId,
     required this.companions,
+    required this.companionCount,
     required this.season,
     required this.selectedLandmark,
     required this.startDate,
@@ -70,7 +74,9 @@ class _TitleGenerationState extends State<TitleGeneration>
 
       // IotroGeneration으로 이동하며 데이터 전달
       Get.to(() => IotroGeneration(
+        travelId : widget.travelId,
         companions: widget.companions,
+        companionCount: widget.companionCount,
         selectedLandmarkId: widget.selectedLandmark,
         startDate: widget.startDate,
         endDate: widget.endDate,

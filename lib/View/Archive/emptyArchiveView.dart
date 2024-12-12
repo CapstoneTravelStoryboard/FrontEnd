@@ -7,7 +7,8 @@ import 'package:lottie/lottie.dart';
 
 
 class EmptyArchiveView extends StatelessWidget {
-  const EmptyArchiveView({super.key});
+  final int travelId;
+  const EmptyArchiveView({super.key, required this.travelId});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +43,7 @@ class EmptyArchiveView extends StatelessWidget {
                   ),
                   InkWell(
                     onTap: () {
-                      Get.to(() => GenerateStoryboardView());
+                      Get.to(() => GenerateStoryboardView(travelId: travelId,));
                     },
                     child: Container(
                       height: 30.h,

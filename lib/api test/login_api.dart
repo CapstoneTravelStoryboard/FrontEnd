@@ -1,10 +1,12 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:tripdraw/api%20test/tokenStorage.dart';
+import 'package:tripdraw/api%20test/generatesb_api_func.dart';
 import 'package:tripdraw/config/appConfig.dart';
 
 import 'package:get/get.dart';
+
+import '../controller/tokenController.dart';
 
 Future<String> signUp(Map<String, dynamic> body) async {
   final url = Uri.parse('${AppConfig.baseUrl}/api/v1/members/signup');
@@ -34,6 +36,7 @@ Future<String> signUp(Map<String, dynamic> body) async {
 Future<Map<String, dynamic>> login(Map<String, dynamic> body) async {
   final url = Uri.parse('${AppConfig.baseUrl}/api/v1/members/login');
 
+  final tokenController = Get.find<TokenController>();
   try {
     final response = await http.post(
       url,
@@ -63,10 +66,8 @@ void handleLogin(BuildContext context, loginBody) async {
     final token = result['token'];
     final member = result['member'];
     print("token ${token}");
-
+    tokenController.updateToken(token);
     // Token 저장
-    final tokenStorage = TokenStorage();
-    tokenStorage.saveToken(token);
 
     // 로그인 성공 메시지
     Get.snackbar(

@@ -4,24 +4,28 @@ import 'package:get/get.dart';
 import 'package:tripdraw/View/GenerateStoryboard/storyTextGenerationView.dart';
 import 'package:tripdraw/data/stroyboard_data.dart';
 import 'package:tripdraw/style.dart' as style;
-
+import 'package:intl/intl.dart';
 import '../../api test/generatesb_api_func.dart';
 import '../../data/dummyJson.dart';
 
 class IotroGeneration extends StatefulWidget {
+  final int travelId;
   final String companions;
+  final int companionCount;
   final int? selectedLandmarkId;
-  final int startDate;
-  final int endDate;
+  final DateTime? startDate;
+  final DateTime? endDate;
   final String purpose;
   final String season;
   final String? selectedTitle;
-  final List<String> introList;
-  final List<String> outroList;
+  final List<dynamic> introList;
+  final List<dynamic> outroList;
 
   const IotroGeneration({
     Key? key,
+    required this.travelId,
     required this.companions,
+    required this.companionCount,
     required this.selectedLandmarkId,
     required this.startDate,
     required this.endDate,
@@ -40,8 +44,8 @@ class _IotroGenerationState extends State<IotroGeneration>
     with TickerProviderStateMixin {
   String? selectedIntro;
   String? selectedOutro;
-  final List<String> intro = intros;
-  final List<String> outro = outros;
+  final List<dynamic> intro = intros;
+  final List<dynamic> outro = outros;
   List<bool> isVisible = [false, false, false, false, false];
   final PageController _pageController = PageController();
 
@@ -51,27 +55,32 @@ class _IotroGenerationState extends State<IotroGeneration>
     setState(() {
       isLoading = true; // 로딩 시작
     });
+    final startDateConvert =widget.startDate?.toIso8601String();
+    final endDateConvert = widget.startDate?.toIso8601String();
 
     final body = {
-      'companions': widget.companions,
-      'start_date': widget.startDate,
-      'season': widget.season,
+      'landmarkId': widget.selectedLandmarkId,
       'purpose': widget.purpose,
+      'companions': widget.companions,
+      'companionCount':widget.companionCount,
+      'season': widget.season,
       'title': widget.selectedTitle,
       'intro': selectedIntro,
       'outro': selectedOutro,
-      'landmark': widget.selectedLandmarkId,
+      'startDate': startDateConvert,
+      'endDate': endDateConvert,
     };
-
+    print(body);
     try {
-      final response = await sendDataForStoryboardTxt(body);
-
+      final response = await sendDataForStoryboardTxt(body, widget.travelId);
+      print("response $response");
       setState(() {
         isLoading = false; // 로딩 종료
       });
 
       if (response.isNotEmpty) {
         Get.to(() => StoryTextGenerationView(
+          travelId : widget.travelId,
           companions: widget.companions,
           selectedLandmark: widget.selectedLandmarkId,
           startDate: widget.startDate,
@@ -180,14 +189,14 @@ class _IotroGenerationState extends State<IotroGeneration>
         ),
         Expanded(
           child: ListView.builder(
-            itemCount: intros.length,
+            itemCount: widget.introList.length,
             itemBuilder: (context, index) {
               return buildSelectionTile(
-                text: intros[index],
-                isSelected: selectedIntro == intros[index],
+                text: widget.introList[index],
+                isSelected: selectedIntro == widget.introList[index],
                 onTap: () {
                   setState(() {
-                    selectedIntro = intros[index];
+                    selectedIntro = widget.introList[index];
                     _pageController.animateToPage(
                       1,
                       duration: Duration(milliseconds: 500),
@@ -213,14 +222,14 @@ class _IotroGenerationState extends State<IotroGeneration>
         ),
         Expanded(
           child: ListView.builder(
-            itemCount: outros.length,
+            itemCount: widget.outroList.length,
             itemBuilder: (context, index) {
               return buildSelectionTile(
-                text: outros[index],
-                isSelected: selectedOutro == outros[index],
+                text: widget.outroList[index],
+                isSelected: selectedOutro == widget.outroList[index],
                 onTap: () {
                   setState(() {
-                    selectedOutro = outros[index];
+                    selectedOutro = widget.outroList[index];
                   });
                 },
               );

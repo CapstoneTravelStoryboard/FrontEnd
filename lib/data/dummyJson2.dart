@@ -37,7 +37,7 @@ Map<String, dynamic> storyboard1_1 = {
   "start_date": "2024-03-01", // 방문 날짜 (String, 날짜 포맷)
   "createdAt": "2024-03-01T08:00:00.000", // 생성 날짜 (String, ISO 8601)
   "updatedAt": "2024-03-02T08:00:00.000", // 업데이트 날짜 (String, ISO 8601)
-  "sceneList": <Map<String, dynamic>>[scene1_1_1,scene1_1_2,scene1_1_3,scene1_1_4,scene1_1_5],
+  "scenesList": <Map<String, dynamic>>[scene1_1_1,scene1_1_2,scene1_1_3,scene1_1_4,scene1_1_5],
 };
 //final List<Map<String, dynamic>> sceneList = storyboard1_1['sceneList'] as List<Map<String, dynamic>>;
 
@@ -53,7 +53,7 @@ Map<String, dynamic> scene1_1_1 = {
   "camera_movement":
   "(Static) 카메라가 움직이지 않고 고정된 상태에서 피사체가 움직이도록 설정하여 안정적인 분위기를 연출합니다",
   "composition": "(Centered) 장면의 주요 요소를 화면 중앙에 배치하여 안정감과 명확한 초점을 제공합니다",
-  "image_url": "https://example.com/scene1.jpg",
+  "image_url": "https://trip-sculptor-images.s3.ap-northeast-2.amazonaws.com/images/storyboard/3/4.jpg",
   "created_at": "2024-03-01T08:00:00.000",
   "updated_at": "2024-03-01T08:30:00.000"
 };
@@ -67,7 +67,7 @@ Map<String, dynamic> scene1_1_2 = {
   "camera_angle": "Close-Up (근접 촬영으로, 인물이나 특정 디테일을 강조)",
   "camera_movement": "Tracking (카메라가 인물의 움직임을 부드럽게 따라가는 방식)",
   "composition": "Dynamic (비대칭적이고 생동감 있는 구도로 자연과 인물의 조화를 강조)",
-  "image_url": "https://example.com/scene1.jpg",
+  "image_url": "https://trip-sculptor-images.s3.ap-northeast-2.amazonaws.com/images/storyboard/2/4.jpg",
   "created_at": "2024-03-01T08:00:00.000",
   "updated_at": "2024-03-01T08:30:00.000"
 };
@@ -141,7 +141,7 @@ Map<String, dynamic> scene1_2_1 = {
   "camera_angle": "Medium Shot (인물과 자전거를 적절한 거리에서 담아, 행동과 주변 환경의 조화를 강조)",
   "camera_movement": "Zoom Out (카메라가 점차 멀어지며 장면의 전체적인 맥락과 공간감을 확대하여 보여줌)",
   "composition": "Symmetrical (자전거와 인물들이 화면의 중심에 대칭적으로 배치되어 안정적이고 정돈된 느낌을 전달)",
-  "image_url": "https://example.com/scene1.jpg",
+  "image_url": "https://trip-sculptor-images.s3.ap-northeast-2.amazonaws.com/images/storyboard/3/4.jpg",
   "created_at": "2024-03-01T08:00:00.000",
   "updated_at": "2024-03-01T08:30:00.000"
 };

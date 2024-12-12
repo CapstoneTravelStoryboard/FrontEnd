@@ -3,13 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:tripdraw/View/Archive/emptyArchiveView.dart';
+import 'package:tripdraw/View/Archive/emptyTripView.dart';
 import 'package:tripdraw/View/Archive/stroyboardListView.dart';
 import 'package:tripdraw/View/GenerateStoryboard/generateTravelView.dart';
 import 'package:tripdraw/Widget/storyboardArchiveTile.dart';
+import 'package:tripdraw/api%20test/load_api.dart';
+import 'package:tripdraw/config/appConfig.dart';
 import 'package:tripdraw/style.dart' as style;
 import 'package:http/http.dart' as http;
 
 import '../../Widget/tripTile.dart';
+import '../../controller/tokenController.dart';
 import '../../data/dummyJson2.dart';
 
 class ArchiveView extends StatefulWidget {
@@ -20,8 +24,10 @@ class ArchiveView extends StatefulWidget {
 }
 
 class _ArchiveViewState extends State<ArchiveView> {
-  List<Map<String, dynamic>> tripList = travelList; // 초기 travelList
+  List<Map<String, dynamic>> tripList = []; // 초기 여행 목록
   bool isLoading = true;
+
+  final tokenController = Get.put(TokenController());
 
   @override
   void initState() {
@@ -30,41 +36,76 @@ class _ArchiveViewState extends State<ArchiveView> {
   }
 
   Future<void> _loadTravelList() async {
+    final token = tokenController.token.value;
+    print("token: $token");
     try {
-      // 기존 dummy data를 초기값으로 설정
       setState(() {
-        travelList = travelList;
         isLoading = true;
       });
 
+      final headers = {
+        'Content-Type': 'application/json',
+        "ngrok-skip-browser-warning": "69420",
+        'Authorization': 'Bearer $token',
+      };
+
       // API 호출
       final response = await http.get(
-        Uri.parse('https://your-api-domain.com/api/v1/trips'),
+        Uri.parse('${AppConfig.baseUrl}/api/v1/trips'),
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> apiTravelList = jsonDecode(response.body);
+        print("API /trips 호출 결과: ${response.statusCode}");
+        final List<dynamic> apiTravelList =
+        jsonDecode(utf8.decode(response.bodyBytes));
+
         setState(() {
           tripList = apiTravelList
               .map((item) => item as Map<String, dynamic>)
               .toList();
           isLoading = false;
+          print("tripList: $tripList");
         });
       } else {
-        tripList = travelList;
         setState(() {
-          isLoading = false; // 오류 시 로딩 해제
+          isLoading = false;
         });
         Get.snackbar('오류', '여행 데이터를 불러오는 데 실패했습니다.');
       }
     } catch (e) {
-      tripList = travelList;
       setState(() {
-        isLoading = false; // 오류 시 로딩 해제
+        isLoading = false;
       });
       Get.snackbar('오류', '여행 데이터를 불러오는 중 문제가 발생했습니다.');
     }
   }
+
+  Future<void> _deleteTrip(int tripId) async {
+    final token = tokenController.token.value;
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      final url = Uri.parse('${AppConfig.baseUrl}/api/v1/trips/$tripId');
+      final response = await http.delete(url, headers: headers);
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        // 삭제 성공 시 타일 숨기기
+        setState(() {
+          tripList.removeWhere((trip) => trip['id'] == tripId);
+        });
+        Get.snackbar('완료', '여행이 성공적으로 삭제되었습니다.');
+      } else {
+        throw Exception('Failed to delete trip');
+      }
+    } catch (e) {
+      Get.snackbar('오류', '여행 삭제에 실패했습니다.');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -87,54 +128,61 @@ class _ArchiveViewState extends State<ArchiveView> {
             Expanded(
               child: isLoading
                   ? Center(
-                child: CircularProgressIndicator(), // 로딩 중 상태 표시
+                child: CircularProgressIndicator(),
               )
                   : tripList.isEmpty
-                  ? EmptyArchiveView()
+                  ? EmptyTripView()
                   : ListView.builder(
-                physics:
-                const NeverScrollableScrollPhysics(), // 부모 스크롤과 충돌 방지
-                shrinkWrap: true, // ListView 높이 축소
                 itemCount: tripList.length,
                 itemBuilder: (context, index) {
                   final travel = tripList[index];
                   return TripTile(
                     title: travel['title'].toString(),
-                    date: travel['day_start'].toString(),
-                    destination: (travel['destination_list']
-                    as List<String>)
-                        .join(', '),
+                    id: travel['id'],
+                    date: travel['dayStart']?.split('T').first ?? '',
                     imageUrl: '',
                     onTap: () async {
+                      final headers = {
+                        'Content-Type': 'application/json',
+                        "ngrok-skip-browser-warning": "69420",
+                        'Authorization':
+                        'Bearer ${tokenController.token.value}',
+                      };
+
                       try {
-                        // API 호출 (현재 주석 처리)
-                        /*
                         final response = await http.get(
-                          Uri.parse('https://your-api-domain.com/api/v1/storyboards?trip_id=${travel['trip_id']}'),
+                          Uri.parse(
+                              '${AppConfig.baseUrl}/api/v1/${travel['id']}/storyboards'),
+                          headers: headers,
                         );
 
                         if (response.statusCode == 200) {
-                          final List<dynamic> storyboards = jsonDecode(response.body);
+                          final List<dynamic> rawData =
+                          jsonDecode(utf8.decode(
+                              response.bodyBytes));
+                          final List<Map<String, dynamic>>
+                          storyboards = rawData
+                              .map((item) =>
+                          item as Map<String, dynamic>)
+                              .toList();
+
                           Get.to(() => StoryBoardListView(
-                                travelId: travel['trip_id'],
-                                travelTitle: travel['title'].toString(),
-                                storyboardList: storyboards.map((item) => item as Map<String, dynamic>).toList(),
-                              ));
+                            travelId: travel['id'],
+                            travelTitle: travel['title'],
+                            storyboards: storyboards,
+                          ));
                         } else {
                           Get.snackbar('오류', '스토리보드를 불러오는 데 실패했습니다.');
                         }
-                        */
-                        // 임시 이동
-                        Get.to(() => StoryBoardListView(
-                          travelId: travel['trip_id'],
-                          travelTitle: travel['title'].toString(),
-                        ));
                       } catch (e) {
                         Get.snackbar('오류', '스토리보드 데이터를 불러오는 중 문제가 발생했습니다.');
                       }
                     },
-
-                    isStoryboard: false, storyboardId: index,
+                    isStoryboard: false,
+                    storyboardId: index,
+                    onDelete: () async {
+                      await _deleteTrip(travel['id']); // 삭제 로직 전달
+                    },
                   );
                 },
               ),
@@ -142,19 +190,16 @@ class _ArchiveViewState extends State<ArchiveView> {
           ],
         ),
       ),
-      floatingActionButton: Padding(
-        padding: EdgeInsets.fromLTRB(0, 0, 10.w, 30.h),
-        child: FloatingActionButton.extended(
-          onPressed: () {
-            Get.to(() => GenerateTravelView());
-          },
-          label: Text(
-            '새 여행기록 추가',
-            style: TextStyle(fontSize: 14.sp),
-          ),
-          icon: Icon(Icons.add),
-          backgroundColor: style.mainColor,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Get.to(() => GenerateTravelView());
+        },
+        label: Text(
+          '새 여행기록 추가',
+          style: TextStyle(fontSize: 14.sp),
         ),
+        icon: Icon(Icons.add),
+        backgroundColor: style.mainColor,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );

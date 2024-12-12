@@ -3,7 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:tripdraw/View/Archive/archiveView.dart';
 import 'package:tripdraw/View/GenerateStoryboard/generateStoryboard.dart';
+import 'package:tripdraw/View/mainView.dart';
 import 'package:tripdraw/style.dart' as style;
+
+import '../../api test/generatesb_api_func.dart';
 
 class GenerateTravelView extends StatefulWidget {
   @override
@@ -45,7 +48,7 @@ class _GenerateTravelViewState extends State<GenerateTravelView> {
             ),
             Text(
               '여행 제목을 입력해주세요\n(예: 5월의 가족여행, 1주년 데이트)\n제목은 추후 수정할 수 있습니다',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(fontSize: 12.sp, color: Colors.grey),
             ),
             SizedBox(height: 10.h),
             Padding(
@@ -62,7 +65,7 @@ class _GenerateTravelViewState extends State<GenerateTravelView> {
             SizedBox(height: 5.h),
             GestureDetector(
               onTap: () {
-                Get.to(() => GenerateStoryboardView());
+                Get.to(() => ArchiveView());
               },
               child: Text(
                 "기존 여행에 스토리보드를 추가하고 싶다면?",
@@ -79,8 +82,10 @@ class _GenerateTravelViewState extends State<GenerateTravelView> {
               ? () {
             String travelTitle = _titleController.text;
             print('입력된 제목: $travelTitle');
-            Get.to(() => ArchiveView());
             //api로 새로운 여행 생성
+            // final body = {'title' : '$travelTitle' };
+            makeTrip(travelTitle);
+            Get.offAll(() => MainView());
           }
               : null, // 비활성화 상태일 때 null로 설정
           style: ElevatedButton.styleFrom(

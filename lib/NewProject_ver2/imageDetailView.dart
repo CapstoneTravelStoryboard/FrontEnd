@@ -1,3 +1,6 @@
+import 'dart:core';
+import 'dart:core';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -8,12 +11,20 @@ class ImageDetailView extends StatefulWidget {
   final String title;
   final Map<String, dynamic> detail;
   final int index;
+  final String cameraAngle;
+  final String cameraMovement;
+  final String composition;
+  final String imageUrl;
 
   ImageDetailView({
     required this.index,
     required this.title,
     required this.detail,
     required this.isMy,
+    required this.cameraAngle,
+    required this.cameraMovement,
+    required this.composition,
+    required this.imageUrl,
   });
 
   @override
@@ -58,6 +69,33 @@ class _ImageDetailViewState extends State<ImageDetailView> {
     }
   }
 
+  Widget _buildImage(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return Container(
+        width: 130.w,
+        height: 80.h,
+        color: Colors.grey,
+        child: Icon(Icons.image_not_supported, color: Colors.white),
+      );
+    }
+
+    return Image.network(
+      imageUrl,
+      width: 130.w,
+      height: 80.h,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) {
+        print('Error loading image: $imageUrl');
+        return Container(
+          width: 130.w,
+          height: 80.h,
+          color: Colors.grey,
+          child: Icon(Icons.image_not_supported, color: Colors.white),
+        );
+      },
+    );
+  }
+
   Widget _buildEditableField({
     required String fieldKey,
     required String title,
@@ -76,25 +114,26 @@ class _ImageDetailViewState extends State<ImageDetailView> {
           ),
           isEditing[fieldKey] == true
               ? TextField(
-            autofocus: true,
-            maxLines: null,
-            keyboardType: TextInputType.multiline,
-            onSubmitted: (value) {
-              setState(() {
-                detail[fieldKey] = value.isNotEmpty ? value : hint;
-                isEditing[fieldKey] = false;
-              });
-            },
-            controller: TextEditingController(text: detail[fieldKey] ?? ''),
-            decoration: InputDecoration(
-              hintText: hint,
-              border: OutlineInputBorder(),
-            ),
-          )
+                  autofocus: true,
+                  maxLines: null,
+                  keyboardType: TextInputType.multiline,
+                  onSubmitted: (value) {
+                    setState(() {
+                      detail[fieldKey] = value.isNotEmpty ? value : hint;
+                      isEditing[fieldKey] = false;
+                    });
+                  },
+                  controller:
+                      TextEditingController(text: detail[fieldKey] ?? ''),
+                  decoration: InputDecoration(
+                    hintText: hint,
+                    border: OutlineInputBorder(),
+                  ),
+                )
               : Text(
-            detail[fieldKey] ?? hint,
-            style: TextStyle(fontSize: 16),
-          ),
+                  detail[fieldKey] ?? hint,
+                  style: TextStyle(fontSize: 16),
+                ),
         ],
       ),
     );
@@ -131,6 +170,24 @@ class _ImageDetailViewState extends State<ImageDetailView> {
                     ),
                 ],
               ),
+              Image.network(
+                widget.imageUrl,
+                width: 300.w,
+                fit: BoxFit.cover, // 원하는 BoxFit 옵션을 설정
+                errorBuilder: (context, error, stackTrace) {
+                  print('Error loading image: ${widget.imageUrl}');
+                  return Container(
+                    width: 200.w,
+                    height: 100.h,
+                    color: Colors.grey,
+                    child: Icon(
+                      Icons.image_not_supported,
+                      color: Colors.white,
+                      size: 50.w, // 아이콘 크기 조정
+                    ),
+                  );
+                },
+              ),
               Text(
                 "#${widget.index + 1}. ${widget.title.isNotEmpty ? widget.title : '제목 없음'}",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -145,19 +202,19 @@ class _ImageDetailViewState extends State<ImageDetailView> {
               _buildEditableField(
                 fieldKey: 'camera_angle',
                 title: '화각',
-                hint: '화각 정보가 없습니다.',
+                hint: widget.cameraAngle,
               ),
               SizedBox(height: 16),
               _buildEditableField(
                 fieldKey: 'camera_movement',
                 title: '카메라 무빙',
-                hint: '카메라 무빙 정보가 없습니다.',
+                hint: widget.cameraMovement,
               ),
               SizedBox(height: 16),
               _buildEditableField(
                 fieldKey: 'composition',
                 title: '구도',
-                hint: '구도 정보가 없습니다.',
+                hint: widget.composition,
               ),
             ],
           ),

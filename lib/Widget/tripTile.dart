@@ -1,28 +1,34 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:tripdraw/View/Archive/archiveView.dart';
 
 import '../api test/archiveApi.dart';
 import 'package:tripdraw/style.dart' as style;
+
 class TripTile extends StatelessWidget {
   final String title;
   final String date;
-  final String destination;
   final String imageUrl;
   final VoidCallback onTap;
+  final VoidCallback onDelete; // 삭제 콜백 추가
   final bool isStoryboard;
-  final int storyboardId; // 스토리보드 ID 추가
+  final int storyboardId;
+  final int id;
 
   const TripTile({
     Key? key,
     required this.title,
     required this.date,
-    required this.destination,
     required this.imageUrl,
     required this.onTap,
+    required this.onDelete, // onDelete 전달받음
     required this.isStoryboard,
-    required this.storyboardId, // ID 전달받음
+    required this.storyboardId,
+    required this.id,
   }) : super(key: key);
 
   @override
@@ -47,21 +53,6 @@ class TripTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4.r),
-                child: imageUrl.isNotEmpty
-                    ? Image.network(
-                  imageUrl,
-                  width: 80.w,
-                  height: 80.w,
-                  fit: BoxFit.cover,
-                )
-                    : Container(
-                  width: 80.w,
-                  height: 60.w,
-                  color: Colors.grey,
-                ),
-              ),
               SizedBox(width: 15.w),
               Expanded(
                 child: Column(
@@ -79,92 +70,94 @@ class TripTile extends StatelessWidget {
                       date,
                       style: TextStyle(fontSize: 12.sp, color: Colors.grey),
                     ),
-                    Text(
-                      destination,
-                      style: TextStyle(fontSize: 12.sp, color: Colors.grey),
-                    ),
+                    // Text(
+                    //   destination,
+                    //   style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                    // ),
                   ],
                 ),
               ),
               SizedBox(width: 10.w),
-                PopupMenuButton<String>(
-                  icon: Icon(Icons.more_vert),
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          TextEditingController titleController =
-                          TextEditingController(text: title);
-                          return AlertDialog(
-                            title: Text(
-                              '제목 수정',
-                              style: style.textTheme.bodyMedium,
+              PopupMenuButton<String>(
+                icon: Icon(Icons.more_vert),
+                onSelected: (value) async {
+                  if (value == 'edit') {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        TextEditingController titleController =
+                            TextEditingController(text: title);
+                        return AlertDialog(
+                          title: Text(
+                            '제목 수정',
+                            style: style.textTheme.bodyMedium,
+                          ),
+                          content: TextField(
+                            controller: titleController,
+                            decoration: InputDecoration(
+                              hintText: '새 제목을 입력하세요',
                             ),
-                            content: TextField(
-                              controller: titleController,
-                              decoration: InputDecoration(
-                                hintText: '새 제목을 입력하세요',
-                              ),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(3.r),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('취소'),
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(3.r),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
+                            TextButton(
+                              onPressed: () async {
+                                String newTitle = titleController.text;
+
+                                if (newTitle.isNotEmpty) {
+                                  print('수정된 제목: $newTitle');
+                                  // 실제 API 호출은 아래와 같이 주석 처리된 부분을 사용하세요.
+                                  // await _updateTitle(newTitle);
+
                                   Navigator.of(context).pop();
-                                },
-                                child: Text('취소'),
-                              ),
-                              TextButton(
-                                onPressed: () async {
-                                  String newTitle = titleController.text;
+                                  Get.snackbar(
+                                    '완료',
+                                    '제목이 성공적으로 수정되었습니다!',
+                                  );
+                                } else {
+                                  Get.snackbar(
+                                    '오류',
+                                    '제목을 입력해주세요.',
+                                  );
+                                }
+                              },
+                              child: Text('확인'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  } else if (value == 'delete') {
+                    onDelete(); // 삭제 콜백 호출
+                  }
 
-                                  if (newTitle.isNotEmpty) {
-                                    print('수정된 제목: $newTitle');
-                                    // 실제 API 호출은 아래와 같이 주석 처리된 부분을 사용하세요.
-                                    // await _updateTitle(newTitle);
-
-                                    Navigator.of(context).pop();
-                                    Get.snackbar(
-                                      '완료',
-                                      '제목이 성공적으로 수정되었습니다!',
-                                    );
-                                  } else {
-                                    Get.snackbar(
-                                      '오류',
-                                      '제목을 입력해주세요.',
-                                    );
-                                  }
-                                },
-                                child: Text('확인'),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    } else if (value == 'delete') {
-                      _confirmDelete(context);
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'edit',
-                      child: Text('수정하기'),
-                    ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Text('삭제하기'),
-                    ),
-                  ],
-                ),
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Text('수정하기'),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Text('삭제하기'),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
       ),
     );
   }
+
 // 실제 API 호출 함수
   Future<void> _updateTitle(String newTitle) async {
     final id = 123; // 여기서 id 값을 실제로 전달받아 사용하세요.
@@ -189,7 +182,8 @@ class TripTile extends StatelessWidget {
     // }
   }
 
-  void _confirmDelete(BuildContext context) {
+  Future<void> _confirmDelete(BuildContext context) async {
+    final Completer<void> completer = Completer<void>();
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -200,13 +194,15 @@ class TripTile extends StatelessWidget {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // 다이얼로그 닫기
+                completer.complete(); // 취소한 경우에도 완료 신호를 보냄
               },
               child: Text('취소'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(); // 다이얼로그 닫기
-                deleteTrip(storyboardId);
+                deleteTrip(id); // 삭제 수행
+                completer.complete(); // 완료 신호
               },
               child: Text('삭제'),
             ),
@@ -214,6 +210,9 @@ class TripTile extends StatelessWidget {
         );
       },
     );
+
+    // 다이얼로그가 닫힐 때까지 기다림
+    return completer.future;
   }
 
 }

@@ -3,32 +3,26 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:tripdraw/View/Archive/archiveView.dart';
 import 'package:tripdraw/View/GenerateStoryboard/storyTextDetailView.dart';
-import 'package:tripdraw/View/mainView.dart';
-import 'package:tripdraw/config/appConfig.dart';
-import '../../api test/generatesb_api_func.dart';
-import '../../data/dummyJson2.dart';
-import '../../data/stroyboard_data.dart';
+import 'package:tripdraw/api%20test/generatesb_api_func.dart';
 import 'package:tripdraw/style.dart' as style;
 
-import '../Archive/archiveView.dart';
-import '../Archive/sceneListView.dart';
-import 'package:http/http.dart' as http;
-
-import '../homeView.dart';
 class StoryTextGenerationView extends StatefulWidget {
+  final int travelId;
   final String companions;
   final int? selectedLandmark;
-  final int startDate;
-  final int endDate;
+  final DateTime? startDate;
+  final DateTime? endDate;
   final String themes;
   final String season;
   final String? intro;
   final String? outro;
-  final List<String> storyboardData;
+  final Map<String, dynamic> storyboardData; // 수정: 정확한 데이터 타입
 
   const StoryTextGenerationView({
     Key? key,
+    required this.travelId,
     required this.companions,
     required this.selectedLandmark,
     required this.startDate,
@@ -46,16 +40,11 @@ class StoryTextGenerationView extends StatefulWidget {
 }
 
 class _StoryTextGenerationViewState extends State<StoryTextGenerationView> {
-  bool isProcessing = false;
-
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> sceneList =
-        widget.storyboardData.isNotEmpty
-            ? widget.storyboardData
-                .map((data) => jsonDecode(data) as Map<String, dynamic>)
-                .toList()
-            : (storyboard1_1['sceneList'] as List<Map<String, dynamic>>? ?? []);
+
+    final int storyboardId = widget.storyboardData['id'];
+    final List<Map<String, dynamic>> sceneList = widget.storyboardData['scenes'];
 
     return Scaffold(
       body: Padding(
@@ -114,17 +103,10 @@ class _StoryTextGenerationViewState extends State<StoryTextGenerationView> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
-                if (sceneList.isEmpty) {
-                  Get.snackbar('오류', '장면 데이터가 없습니다.');
-                  return;
-                }
-                if (isProcessing) {
-                  Get.snackbar('알림', '이미지 생성이 이미 진행 중입니다.');
-                  return;
-                }
-                _startProcessingAndNavigateToArchive();
-              },
+              onPressed: (){
+                sendDataForImageGenerate(widget.season, widget.travelId, storyboardId);
+                Get.offAll(()=>ArchiveView());
+                },
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
@@ -133,72 +115,11 @@ class _StoryTextGenerationViewState extends State<StoryTextGenerationView> {
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
               ),
-              child: Text(
-                '이미지 생성 및 스토리보드 저장',
-                style: style.textTheme.headlineMedium,
-              ),
+              child: Text('스토리보드 저장 및 이미지 생성'),
             ),
           ],
         ),
       ),
     );
-  }
-
-  void _startProcessingAndNavigateToArchive() {
-    setState(() {
-      isProcessing = true;
-    });
-
-    // 진행 중 알림 표시
-    Get.snackbar('알림', '이미지 생성 작업이 진행 중입니다...');
-
-    // ArchiveView로 이동
-    Get.offAll(() => MainView());
-
-    // 작업 상태를 주기적으로 확인
-    _pollStoryboardStatus(123); // 여기에 실제 ID를 전달하세요.
-  }
-
-  Future<void> _pollStoryboardStatus(int storyboardId) async {
-    final url =
-    Uri.parse('${AppConfig.baseUrl}/api/v1/storyboards/$storyboardId/status');
-
-    final headers = {'Content-Type': 'application/json'};
-
-    while (isProcessing) {
-      try {
-        final response = await http.get(url, headers: headers);
-
-        if (response.statusCode == 200) {
-          final responseBody = jsonDecode(response.body);
-          if (responseBody['status'] == true) {
-            _onProcessingComplete();
-            break;
-          }
-        } else {
-          print('Failed to fetch status. Status code: ${response.statusCode}');
-        }
-      } catch (e) {
-        print('Error checking status: $e');
-      }
-
-      // 2초마다 상태 확인
-      await Future.delayed(Duration(seconds: 2));
-    }
-  }
-  void _onProcessingComplete() {
-    setState(() {
-      isProcessing = false;
-    });
-
-    // 작업 완료 알림 표시
-    Get.snackbar('완료', '이미지 생성이 완료되었습니다!');
-  }
-  void _showProgressSnackbar() async {
-    while (isProcessing) {
-      await Future.delayed(Duration(seconds: 2)); // 2초마다 상태 알림
-      if (!isProcessing) break; // 작업 완료 시 종료
-      Get.snackbar('진행 중', '이미지 생성 작업이 진행 중입니다...');
-    }
   }
 }

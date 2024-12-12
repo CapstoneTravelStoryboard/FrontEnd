@@ -42,6 +42,10 @@ class BuildListWidget extends StatelessWidget {
                 index: index,
                 title: titles[index],
                 detail: details,
+                cameraAngle: details['cameraAngle'],
+                cameraMovement: details['cameraMovement'],
+                composition: details['composition'],
+                imageUrl: '',
               ),
             );
           },

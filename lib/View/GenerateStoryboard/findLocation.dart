@@ -20,6 +20,7 @@ class FindLocationView extends StatefulWidget {
   @override
   State<FindLocationView> createState() => _FindLocationViewState();
 }
+
 class _FindLocationViewState extends State<FindLocationView> {
   final TextEditingController _searchController = TextEditingController();
   List<String> filteredLocations = [];
@@ -42,7 +43,7 @@ class _FindLocationViewState extends State<FindLocationView> {
       } else {
         filteredLocations = allLocation
             .where((location) =>
-            location.toLowerCase().contains(query.toLowerCase()))
+                location.toLowerCase().contains(query.toLowerCase()))
             .toList();
       }
     });
@@ -59,6 +60,7 @@ class _FindLocationViewState extends State<FindLocationView> {
       filteredLocations = [];
     });
   }
+
   Future<void> _showLocationSearchDialog() async {
     // 다이얼로그를 열 때 항상 전체 목록을 보여줌
     setState(() {
@@ -70,7 +72,8 @@ class _FindLocationViewState extends State<FindLocationView> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return Padding(
@@ -103,24 +106,24 @@ class _FindLocationViewState extends State<FindLocationView> {
                       Expanded(
                         child: filteredLocations.isEmpty
                             ? Center(
-                          child: Text(
-                            '검색 결과가 없습니다.',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        )
+                                child: Text(
+                                  '검색 결과가 없습니다.',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              )
                             : ListView.builder(
-                          itemCount: filteredLocations.length,
-                          itemBuilder: (context, index) {
-                            final location = filteredLocations[index];
-                            return ListTile(
-                              title: Text(location),
-                              onTap: () {
-                                _selectLocation(location);
-                                Navigator.pop(context);
-                              },
-                            );
-                          },
-                        ),
+                                itemCount: filteredLocations.length,
+                                itemBuilder: (context, index) {
+                                  final location = filteredLocations[index];
+                                  return ListTile(
+                                    title: Text(location),
+                                    onTap: () {
+                                      _selectLocation(location);
+                                      Navigator.pop(context);
+                                    },
+                                  );
+                                },
+                              ),
                       ),
                     ],
                   ),
@@ -143,18 +146,26 @@ class _FindLocationViewState extends State<FindLocationView> {
     });
 
     print('province:$province, district:$district');
+    final headers = {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${tokenController.token.value}',
+      // Get token from controller
+    };
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/api/v1/landmarks?province=${province}&district=${district}'),
+        Uri.parse(
+            '${AppConfig.baseUrl}/api/v1/landmarks?province=${province}&district=${district}'),
+        headers: headers,
       );
 
-      print('${AppConfig.baseUrl}/api/v1/landmarks?province=${province}&district=${district}');
+      print(
+          '${AppConfig.baseUrl}/api/v1/landmarks?province=${province}&district=${district}');
       if (response.statusCode == 200) {
         // final List<dynamic> data = jsonDecode(response.body);
-        final decodedBody = utf8.decode(response.bodyBytes); // body 대신 bodyBytes 사용
+        final decodedBody =
+            utf8.decode(response.bodyBytes); // body 대신 bodyBytes 사용
         final List<dynamic> data = jsonDecode(decodedBody);
         print(data);
-
 
         // landmarks 리스트에 id와 name 저장
         final List<Map<String, dynamic>> fetchedLandmarks = data.map((item) {
@@ -169,7 +180,9 @@ class _FindLocationViewState extends State<FindLocationView> {
         setState(() {
           landmarkObj = fetchedLandmarks; // 전체 랜드마크 리스트
           print("랜드마크리스트 호출완료");
-          filteredLandmark = fetchedLandmarks.map((e) => e['name'] as String).toList(); // name만 필터링
+          filteredLandmark = fetchedLandmarks
+              .map((e) => e['name'] as String)
+              .toList(); // name만 필터링
         });
       } else {
         throw Exception('Failed to load landmarks');
@@ -191,7 +204,7 @@ class _FindLocationViewState extends State<FindLocationView> {
   int? getLandmarkId(String name) {
     try {
       final landmark = landmarkObj.firstWhere(
-            (landmark) => landmark['name'] == name,
+        (landmark) => landmark['name'] == name,
         orElse: () => {"id": null, "name": null},
       );
       return landmark['id'] as int?;
@@ -201,19 +214,16 @@ class _FindLocationViewState extends State<FindLocationView> {
     }
   }
 
-
   String? getLandmarkName(int? id) {
     if (id == null) return null;
 
     final landmark = landmarkObj.firstWhere(
-          (item) => item['id'] == id,
+      (item) => item['id'] == id,
       orElse: () => {"id": null, "name": null}, // 빈 Map 반환
     );
 
     return landmark['name'] as String?;
   }
-
-
 
   Future<void> _showLandmarkSearchDialog() async {
     if (selectedLocation == null) {
@@ -228,7 +238,6 @@ class _FindLocationViewState extends State<FindLocationView> {
     final province = parts[0].replaceAll(RegExp(r'[도|특별시|광역시|특별자치도]'), '');
     final district = parts.length > 1 ? parts[1] : '';
 
-
     // API 호출
     await _fetchLandmarks(province, district);
 
@@ -237,11 +246,12 @@ class _FindLocationViewState extends State<FindLocationView> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return Padding(
-                padding: EdgeInsets.all(16.0),
+                padding: EdgeInsets.symmetric(vertical: 15.h, horizontal: 15.w),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     minHeight: 300.h,
@@ -256,52 +266,50 @@ class _FindLocationViewState extends State<FindLocationView> {
                           decoration: InputDecoration(
                             labelText: '랜드마크 검색',
                             hintText: '랜드마크를 검색하세요',
-                            border: OutlineInputBorder(),
                           ),
                           onChanged: (value) {
                             setState(() {
+                              print(landmarkObj);
                               filteredLandmark = landmarkObj
                                   .map((e) => e['name'] as String)
-                                  .where((name) => name.toLowerCase().contains(value.toLowerCase()))
+                                  .where((name) => name
+                                      .toLowerCase()
+                                      .contains(value.toLowerCase()))
                                   .toList();
                             });
                           },
-
                         ),
                       ),
-                      SizedBox(height: 16),
                       Expanded(
                         child: isLoading
                             ? Center(child: CircularProgressIndicator())
                             : filteredLandmark.isEmpty
-                            ? Center(
-                          child: Text(
-                            '검색 결과가 없습니다.',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        )
-                            : ListView.builder(
-                          itemCount: filteredLandmark.length,
-                          itemBuilder: (context, index) {
-                            final landmark = filteredLandmark[index];
-                            return ListTile(
-                              title: Text(landmark),
-                              onTap: () {
-                                final selectedName = filteredLandmark[index]; // 선택된 name
-                                final selectedId = getLandmarkId(selectedName); // name 기반으로 id 가져오기
-
-                                setState(() {
-                                  selectedLandmarkID = selectedId; // id 저장
-                                });
-                                widget.onLandmarkSelected(selectedId);
-
-                                Navigator.pop(context);
-                              },
-
-
-                            );
-                          },
-                        ),
+                                ? Center(
+                                    child: Text(
+                                      '검색 결과가 없습니다.',
+                                      style: TextStyle(color: Colors.grey),
+                                    ),
+                                  )
+                                : ListView.builder(
+                                    itemCount: filteredLandmark.length,
+                                    itemBuilder: (context, index) {
+                                      final landmark = filteredLandmark[index];
+                                      return ListTile(
+                                        title: Text(landmark),
+                                        onTap: () {
+                                          final selectedName = filteredLandmark[index]; // 선택된 name
+                                          final selectedId = getLandmarkId(
+                                              selectedName); // name 기반으로 id 가져오기
+                                          setState(() {
+                                            selectedLandmarkID =
+                                                selectedId; // id 저장
+                                          });
+                                          widget.onLandmarkSelected(selectedId);
+                                          Navigator.pop(context);
+                                        },
+                                      );
+                                    },
+                                  ),
                       ),
                     ],
                   ),
@@ -313,6 +321,7 @@ class _FindLocationViewState extends State<FindLocationView> {
       },
     );
   }
+
   @override
   Widget build(BuildContext context) {
     final landmarkName = getLandmarkName(selectedLandmarkID);
