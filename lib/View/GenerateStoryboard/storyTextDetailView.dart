@@ -7,9 +7,12 @@ import '../../api test/modifyApi.dart';
 
 class StoryTextDetailView extends StatefulWidget {
   final String title;
+  final int storyboardId;
   final Map<String, dynamic> detail;
+  final Map<String, dynamic> decodedData;
 
-  StoryTextDetailView({required this.title, required this.detail});
+  StoryTextDetailView(
+      {required this.title, required this.detail, required this.decodedData, required this.storyboardId});
 
   @override
   _StoryTextDetailViewState createState() => _StoryTextDetailViewState();
@@ -18,11 +21,22 @@ class StoryTextDetailView extends StatefulWidget {
 class _StoryTextDetailViewState extends State<StoryTextDetailView> {
   late Map<String, dynamic> detail;
   Map<String, bool> isEditing = {};
+  late TextEditingController descriptionController;
+  late TextEditingController cameraAngleController;
+  late TextEditingController cameraMovementController;
+  late TextEditingController compositionController;
 
   @override
   void initState() {
     super.initState();
     detail = Map.from(widget.detail); // 원본 데이터를 보호
+
+    // 초기화
+    descriptionController = TextEditingController(text: widget.decodedData['description'] ?? '');
+    cameraAngleController = TextEditingController(text: widget.decodedData['cameraAngle'] ?? '');
+    cameraMovementController = TextEditingController(text: widget.decodedData['cameraMovement'] ?? '');
+    compositionController = TextEditingController(text: widget.decodedData['composition'] ?? '');
+
     isEditing = {
       'description': false,
       'camera_angle': false,
@@ -31,23 +45,37 @@ class _StoryTextDetailViewState extends State<StoryTextDetailView> {
     };
   }
 
+
+  @override
+  void dispose() {
+    // 컨트롤러 해제
+    descriptionController.dispose();
+    cameraAngleController.dispose();
+    cameraMovementController.dispose();
+    compositionController.dispose();
+    super.dispose();
+  }
+
   Future<void> _updateStoryboard() async {
     final updatedData = {
-      'description': detail['description'],
-      'camera_angle': detail['camera_angle'],
-      'camera_movement': detail['camera_movement'],
-      'composition': detail['composition'],
-      'order_num': detail['order_num'],
-      'sceneTitle': detail['sceneTitle'],
+      'id': detail['sceneId'],
+      'orderNum': detail['orderNum'],
+      'title': detail['sceneTitle'],
+      'description': descriptionController.text,
+      'cameraAngle': cameraAngleController.text,
+      'cameraMovement': cameraMovementController.text,
+      'composition': compositionController.text,
     };
-
     try {
-      await updateStoryboard(detail['storyboard_id'], updatedData);
-      Get.back(result: updatedData); // 수정된 데이터를 반환하고 전 화면으로 이동
+      await updateScene(widget.storyboardId, detail['sceneId'], updatedData);
+      print("Updated Data: $updatedData");
+      Get.back(result: updatedData); // 수정된 데이터를 반환
     } catch (e) {
-      Get.snackbar('오류', '스토리보드 업데이트 중 문제가 발생했습니다.');
+      Get.snackbar('오류', '장면 업데이트 중 문제가 발생했습니다.');
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -80,32 +108,32 @@ class _StoryTextDetailViewState extends State<StoryTextDetailView> {
                 ],
               ),
               Text(
-                "#${detail['order_num'] ?? '순서 없음'}",
+                "#${detail['orderNum'] ?? '순서 없음'}. ${detail['sceneTitle']}",
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 16),
               _buildEditableField(
                 fieldKey: 'description',
                 title: '영상',
-                hint: '설명이 없습니다.',
+                controller: descriptionController,
               ),
               SizedBox(height: 16),
               _buildEditableField(
                 fieldKey: 'camera_angle',
                 title: '화각',
-                hint: '화각 정보가 없습니다.',
+                controller: cameraAngleController,
               ),
               SizedBox(height: 16),
               _buildEditableField(
                 fieldKey: 'camera_movement',
                 title: '카메라 무빙',
-                hint: '카메라 무빙 정보가 없습니다.',
+                controller: cameraMovementController,
               ),
               SizedBox(height: 16),
               _buildEditableField(
                 fieldKey: 'composition',
                 title: '구도',
-                hint: '구도 정보가 없습니다.',
+                controller: compositionController,
               ),
             ],
           ),
@@ -114,10 +142,11 @@ class _StoryTextDetailViewState extends State<StoryTextDetailView> {
     );
   }
 
+
   Widget _buildEditableField({
     required String fieldKey,
     required String title,
-    required String hint,
+    required TextEditingController controller,
   }) {
     return GestureDetector(
       onTap: () => setState(() {
@@ -135,24 +164,30 @@ class _StoryTextDetailViewState extends State<StoryTextDetailView> {
             autofocus: true,
             maxLines: null,
             keyboardType: TextInputType.multiline,
+            controller: controller,
+            onChanged: (value) {
+              // 동기화
+              setState(() {
+                detail[fieldKey] = value;
+              });
+            },
             onSubmitted: (value) {
               setState(() {
-                detail[fieldKey] = value.isNotEmpty ? value : hint;
                 isEditing[fieldKey] = false;
               });
             },
-            controller: TextEditingController(text: detail[fieldKey] ?? ''),
             decoration: InputDecoration(
-              hintText: hint,
+              hintText: '값을 입력하세요',
               border: OutlineInputBorder(),
             ),
           )
               : Text(
-            detail[fieldKey] ?? hint,
+            controller.text,
             style: TextStyle(fontSize: 16),
           ),
         ],
       ),
     );
   }
+
 }

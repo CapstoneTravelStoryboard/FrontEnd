@@ -40,7 +40,7 @@ class TitleGeneration extends StatefulWidget {
 class _TitleGenerationState extends State<TitleGeneration>
     with TickerProviderStateMixin {
   String? selectedTitle;
-
+  bool isLoading=false;
   // titleListServer가 비어있지 않다면 titleListServer를, 그렇지 않으면 기본 titleList를 사용
   late final List<String> titleList = widget.responseList.isNotEmpty
       ? widget.responseList
@@ -59,22 +59,26 @@ class _TitleGenerationState extends State<TitleGeneration>
       });
     });
   }
-
   void nextStep() async {
-    // POST 요청에 필요한 데이터 정의
+    setState(() {
+      isLoading = true; // 로딩 시작
+    });
+
     final body = {
       'selectedTitle': selectedTitle,
     };
 
     try {
-      // sendDataForIotro 호출 및 응답 처리
       final response = await sendDataForIotro(body);
       final intros = response['intros']!;
       final outros = response['outros']!;
 
-      // IotroGeneration으로 이동하며 데이터 전달
+      setState(() {
+        isLoading = false; // 로딩 종료
+      });
+
       Get.to(() => IotroGeneration(
-        travelId : widget.travelId,
+        travelId: widget.travelId,
         companions: widget.companions,
         companionCount: widget.companionCount,
         selectedLandmarkId: widget.selectedLandmark,
@@ -87,14 +91,23 @@ class _TitleGenerationState extends State<TitleGeneration>
         outroList: outros,
       ));
     } catch (e) {
+      setState(() {
+        isLoading = false; // 로딩 종료
+      });
+
       print('POST 요청 중 오류 발생: $e');
+      Get.snackbar('오류', '데이터 전송 중 문제가 발생했습니다.');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
+      body: isLoading
+          ? Center(
+        child: CircularProgressIndicator(), // 로딩 중일 때 표시
+      )
+          : Padding(
         padding: EdgeInsets.fromLTRB(16.w, 50.h, 20.w, 16.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,34 +190,9 @@ class _TitleGenerationState extends State<TitleGeneration>
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    style: ButtonStyle(
-                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius:
-                          BorderRadius.circular(10.r), // 버튼의 모서리 둥글기 조정
-                        ),
-                      ),
-                      backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
-                          if (states.contains(WidgetState.disabled)) {
-                            return Colors.grey; // 비활성화 상태일 때 배경색
-                          }
-                          return Colors.blue; // 활성화 상태일 때 배경색
-                        },
-                      ),
-                      foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                            (Set<WidgetState> states) {
-                          if (states.contains(WidgetState.disabled)) {
-                            return Colors.white; // 비활성화 상태일 때 글자 색상
-                          }
-                          return Colors.white; // 활성화 상태일 때 글자 색상
-                        },
-                      ),
-                    ),
                     onPressed: selectedTitle == null
                         ? null
                         : () {
-                      // 버튼이 활성화된 상태일 때 실행할 동작
                       nextStep();
                     },
                     child: Padding(
@@ -220,4 +208,5 @@ class _TitleGenerationState extends State<TitleGeneration>
       ),
     );
   }
+
 }
