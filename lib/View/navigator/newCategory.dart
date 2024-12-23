@@ -72,18 +72,20 @@ class _NewCategoryViewState extends State<NewCategoryView> {
 
       if (response.statusCode == 200) {
         // 성공적으로 응답을 받은 경우
-        print(response.statusCode);
         final decodedBody = utf8.decode(response.bodyBytes);
         final List<dynamic> apiData = jsonDecode(decodedBody);
-        print(apiData);
-        // Storyboards 데이터 처리
+
         setState(() {
-          allStoryboards =
-              apiData.map((item) => item as Map<String, dynamic>).toList();
+          allStoryboards = apiData.map((item) {
+            final storyboard = item as Map<String, dynamic>;
+            // 계절 정보 추가
+            storyboard['season'] = getSeason(storyboard['startDate']);
+            return storyboard;
+          }).toList();
+
           applyFilter(selectedFilter); // 초기 필터 적용
         });
       } else {
-        // API 오류 처리
         throw Exception('API 호출 실패: 상태 코드 ${response.statusCode}');
       }
     } catch (e) {
@@ -92,14 +94,34 @@ class _NewCategoryViewState extends State<NewCategoryView> {
       setState(() {
         allStoryboards = travelList
             .map((travel) =>
-                travel["storyboardList"] as List<Map<String, dynamic>>)
-            .expand((storyboardList) => storyboardList)
+        travel["storyboardList"] as List<Map<String, dynamic>>)
+            .expand((storyboardList) {
+          return storyboardList.map((storyboard) {
+            storyboard['season'] = getSeason(storyboard['startDate']);
+            return storyboard;
+          });
+        })
             .toList();
         applyFilter(selectedFilter); // 초기 필터 적용
       });
     }
   }
 
+  void applySubFilter(String subFilter) {
+    setState(() {
+      selectedSubFilter = subFilter;
+      filteredStoryboards = allStoryboards.where((storyboard) {
+        if (selectedFilter == '동행인') {
+          return storyboard['companions']?.toString().contains(subFilter) ?? false;
+        } else if (selectedFilter == '계절') {
+          return storyboard['season'] == subFilter; // 계절 필터링
+        } else if (selectedFilter == '테마') {
+          return storyboard['purpose']?.toString().contains(subFilter) ?? false;
+        }
+        return true;
+      }).toList();
+    });
+  }
   void applyFilter(String filter) {
     setState(() {
       selectedFilter = filter; // 필터 상태 업데이트
@@ -112,8 +134,6 @@ class _NewCategoryViewState extends State<NewCategoryView> {
           selectedSubFilter = '가족'; // '동행인'의 첫 번째 하위 필터
         } else if (filter == '계절') {
           selectedSubFilter = '봄'; // '계절'의 첫 번째 하위 필터
-        } else if (filter == '테마') {
-          selectedSubFilter = '관광'; // '테마'의 첫 번째 하위 필터
         } else {
           selectedSubFilter = ''; // 하위 필터가 없는 경우 초기화
         }
@@ -122,17 +142,17 @@ class _NewCategoryViewState extends State<NewCategoryView> {
         filteredStoryboards = allStoryboards.where((storyboard) {
           if (filter == '동행인') {
             return storyboard['companions']
-                    ?.toString()
-                    .contains(selectedSubFilter) ??
+                ?.toString()
+                .contains(selectedSubFilter) ??
                 false;
           } else if (filter == '계절') {
             return getSeason(storyboard['startDate'])
-                    .contains(selectedSubFilter) ??
+                .contains(selectedSubFilter) ??
                 false;
           } else if (filter == '테마') {
             return storyboard['purpose']
-                    ?.toString()
-                    .contains(selectedSubFilter) ??
+                ?.toString()
+                .contains(selectedSubFilter) ??
                 false;
           } else {
             return storyboard['category']?.toString().contains(filter) ?? false;
@@ -142,14 +162,13 @@ class _NewCategoryViewState extends State<NewCategoryView> {
     });
   }
 
+
   Widget _buildSubFilterButtons() {
     List<String> subFilters = [];
     if (selectedFilter == '동행인') {
       subFilters = ['가족', '친구', '연인', '혼자'];
     } else if (selectedFilter == '계절') {
       subFilters = ['봄', '여름', '가을', '겨울'];
-    } else if (selectedFilter == '테마') {
-      subFilters = ['관광', '자연힐링', '역사여행', '아이와 함께'];
     }
 
     return SingleChildScrollView(
@@ -182,7 +201,7 @@ class _NewCategoryViewState extends State<NewCategoryView> {
   }
 
   Widget _buildFilterButtons() {
-    List<String> filters = ['전체', '동행인', '계절', '테마'];
+    List<String> filters = ['전체', '동행인', '계절'];
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -212,23 +231,6 @@ class _NewCategoryViewState extends State<NewCategoryView> {
         }).toList(),
       ),
     );
-  }
-
-  void applySubFilter(String subFilter) {
-    setState(() {
-      selectedSubFilter = subFilter;
-      filteredStoryboards = allStoryboards.where((storyboard) {
-        if (selectedFilter == '동행인') {
-          return storyboard['companions']?.toString().contains(subFilter) ??
-              false;
-        } else if (selectedFilter == '계절') {
-          return storyboard['season']?.toString().contains(subFilter) ?? false;
-        } else if (selectedFilter == '테마') {
-          return storyboard['purpose']?.toString().contains(subFilter) ?? false;
-        }
-        return true;
-      }).toList();
-    });
   }
 
   @override
@@ -266,16 +268,16 @@ class _NewCategoryViewState extends State<NewCategoryView> {
                     tripid: 0,
                     isMy: false,
                     title: storyboardItem['title'].toString(),
-                    start_date: storyboardItem['startDate'].toString(),
+                    start_date: storyboardItem['startDate']?.split('T').first ?? '',
                     destination: storyboardItem['landmarkInfo'].toString(),
                     thumbnaili:
-                        'https://trip-sculptor-images.s3.ap-northeast-2.amazonaws.com/images/storyboard/3/1.jpg',
+                        'https://trip-sculptor-images.s3.ap-northeast-2.amazonaws.com/images/storyboard/${storyboardItem['id']}/1.jpg',
                     onTap: () async {
                       try {
-                        // API 호출
+                        // APkI 호출
                         final headers = {
                           'Content-Type': 'application/json',
-                          // 'Authorization': 'Bearer $token', // 필요한 경우
+                          // 'Authorization': 'Bearer ${tokenController.token.value}', // 필요한 경우
                         };
 
                         final url = Uri.parse(

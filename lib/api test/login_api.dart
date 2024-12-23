@@ -68,11 +68,21 @@ void handleLogin(BuildContext context, loginBody) async {
     print("token ${token}");
     tokenController.updateToken(token);
     // Token 저장
+    final name = member['name'];
 
+    // 이름이 한글일 경우 UTF-8로 인코딩
+    final encodedName = utf8.encode(name); // 바이트 배열로 인코딩
+    final decodedName = utf8.decode(encodedName); // 다시 디코딩
+
+    print("token ${token}");
+    print("encodedName $encodedName");
+    print("decodedName $decodedName");
+
+    tokenController.updateToken(token);
     // 로그인 성공 메시지
     Get.snackbar(
       '로그인 성공',
-      '${member['name']}님 환영합니다!',
+      '환영합니다!',
       snackPosition: SnackPosition.BOTTOM,
     );
   } else {

@@ -91,49 +91,39 @@ class _StoryTextGenerationViewState extends State<StoryTextGenerationView> {
                       try {
                         final headers = {
                           'Content-Type': 'application/json',
-                          'Authorization':
-                              'Bearer ${tokenController.token.value}',
-                          // 필요한 경우 추가
+                          'Authorization': 'Bearer ${tokenController.token.value}',
                         };
-                        print(headers);
                         final sceneUrl = Uri.parse(
                             '${AppConfig.baseUrl}/api/v1/storyboards/${storyboardId}/scenes/${scene['sceneId']}');
-                        print('Scene URL: $sceneUrl');
-
-                        final response =
-                            await http.get(sceneUrl, headers: headers);
+                        final response = await http.get(sceneUrl, headers: headers);
 
                         if (response.statusCode == 200) {
-                          print('API Call Success: ${response.statusCode}');
-                          final decodedData =
-                              jsonDecode(utf8.decode(response.bodyBytes));
-                          print(decodedData);
-                          // 화면 이동 및 데이터 전달
+                          final decodedData = jsonDecode(utf8.decode(response.bodyBytes));
                           final updatedScene = await Get.to(
                             StoryTextDetailView(
+                              travelid : widget.travelId,
                               title: scene['description'] ?? '정보 없음',
                               detail: scene,
-                              storyboardId : storyboardId,
+                              storyboardId: storyboardId,
                               decodedData: decodedData,
                             ),
                           );
+
+                          if (updatedScene != null) {
+                            setState(() {
+                              sceneList[index] = updatedScene['scenes'][index];
+                            });
+                          }
                         } else {
                           print('API Call Failed: ${response.statusCode}');
-                          Get.snackbar(
-                              'Error', 'Failed to fetch scene details.');
+                          Get.snackbar('Error', 'Failed to fetch scene details.');
                         }
                       } catch (e) {
                         print('Error: $e');
-                        Get.snackbar('Error',
-                            'An unexpected error occurred while fetching data.');
+                        // Get.snackbar('Error', 'An unexpected error occurred while fetching data.');
                       }
-
-                      // if (updatedScene != null) {
-                      //   setState(() {
-                      //     sceneList[index] = updatedScene; // 수정된 데이터 반영
-                      //   });
-                      // }
                     },
+
                   );
                 },
               ),

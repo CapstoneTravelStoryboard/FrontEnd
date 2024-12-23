@@ -8,7 +8,39 @@ import '../config/appConfig.dart';
 import '../controller/tokenController.dart';
 import '../data/dummyJson2.dart';
 import 'generatesb_api_func.dart';
+Future<void> loadScenList(int tripid, int storyboardId) async {
+  final headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer ${tokenController.token.value}',
+  };
 
+  try {
+    final storyboardUrl = Uri.parse(
+        '${AppConfig.baseUrl}/api/v1/$tripid/storyboards/$storyboardId');
+
+    final sceneResponse = await http
+        .get(storyboardUrl, headers: headers);
+    print(storyboardUrl);
+    print(sceneResponse);
+    if (sceneResponse.statusCode == 200) {
+      print(
+          'API Call Success: ${sceneResponse.statusCode}');
+
+
+      final decodedSceneList = jsonDecode(utf8.decode(sceneResponse.bodyBytes));
+      print(decodedSceneList); // 전체 데이터 확인
+
+    } else {
+      print(
+          'API Call Failed: ${sceneResponse.statusCode}');
+      throw Exception('장면 API 호출 실패');
+    }
+  } catch (e) {
+    print('Error: $e');
+    Get.snackbar(
+        '오류', '스토리보드 데이터를 불러오는 중 문제가 발생했습니다.');
+  }
+}
 
 Future<void> loadStoryBoardList() async {
   final headers = {

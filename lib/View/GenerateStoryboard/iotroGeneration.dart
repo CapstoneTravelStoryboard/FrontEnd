@@ -149,12 +149,6 @@ class _IotroGenerationState extends State<IotroGeneration>
                 ],
               ),
             ),
-            IconButton(
-              icon: Icon(Icons.refresh),
-              onPressed: () {
-                // Action for reloading or regenerating titles
-              },
-            ),
             SizedBox(height: 20.h),
             ElevatedButton(
               onPressed: (selectedIntro != null && selectedOutro != null)

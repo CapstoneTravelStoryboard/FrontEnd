@@ -143,18 +143,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ),
             ),
             SizedBox(height: 60.h),
-            GestureDetector(
-              child: Text("입력확인"),
-              onTap: (){
-                final body = {
-                  'name': nameController.text,
-                  'email': emailController.text + selectedEmailDomain!,
-                  'password': passwordController.text,
-                  'passwordConfirm': confirmPasswordController.text,
-                };
-                print(body);
-              },
-            ),
             ValueListenableBuilder<bool>(
               valueListenable: isButtonEnabled,
               builder: (context, isEnabled, child) {

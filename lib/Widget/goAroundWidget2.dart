@@ -13,11 +13,13 @@ class GoAroundwidget2 extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 10.h),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           _categoryButton(input_icon: Icons.ac_unit, theme: '전체'),
+          SizedBox(width: 10.w,),
           _categoryButton(input_icon: Icons.people, theme: '동행인'),
-          _categoryButton(input_icon: Icons.location_on_outlined, theme: '지역'),
+          // _categoryButton(input_icon: Icons.location_on_outlined, theme: '지역'),
+          SizedBox(width: 10.w,),
           _categoryButton(input_icon: Icons.sunny_snowing, theme: '계절'),
         ],
       ),

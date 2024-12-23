@@ -85,6 +85,7 @@ class _SceneListViewState extends State<SceneListView> {
       itemCount: localScenes.length,
       itemBuilder: (context, index) {
         final scene = localScenes[index];
+        print(scene);
         return GestureDetector(
           onTap: () async {
             try {
@@ -98,7 +99,7 @@ class _SceneListViewState extends State<SceneListView> {
                   'https://trip-sculptor-images.s3.ap-northeast-2.amazonaws.com/images/storyboard/${widget.storyboardId}/${scene['orderNum']}.jpg';
               // API 호출
               final sceneUrl = Uri.parse(
-                  '${AppConfig.baseUrl}/api/v1/storyboards/${widget.storyboardId}/scenes/${scene['orderNum']}');
+                  '${AppConfig.baseUrl}/api/v1/storyboards/${widget.storyboardId}/scenes/${scene['sceneId']}');
               print('Scene URL: $sceneUrl');
 
               final response = await http.get(sceneUrl, headers: headers);

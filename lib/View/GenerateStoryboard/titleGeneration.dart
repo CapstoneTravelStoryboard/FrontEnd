@@ -195,6 +195,17 @@ class _TitleGenerationState extends State<TitleGeneration>
                         : () {
                       nextStep();
                     },
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                      backgroundColor:
+                      (selectedTitle == null)
+                          ? Colors.grey
+                          : Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 10.h),
                       child: Text('인트로/아웃트로 생성'),

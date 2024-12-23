@@ -3,14 +3,25 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:tripdraw/View/GenerateStoryboard/generateStoryboard.dart';
 import 'package:tripdraw/View/GenerateStoryboard/generateTravelView.dart';
+import 'package:tripdraw/View/LogIn/loginView2.dart';
+import 'package:tripdraw/View/LogIn/signUp.dart';
+import 'package:tripdraw/api%20test/archiveApi.dart';
 import 'package:tripdraw/style.dart' as style;
+
+import '../controller/tokenController.dart';
 class NewStoryboardButton extends StatelessWidget {
-  const NewStoryboardButton({Key? key}) : super(key: key);
+  NewStoryboardButton({Key? key}) : super(key: key);
+
+  final tokenController = Get.find<TokenController>();
   @override
   Widget build(BuildContext context) {
+    final token = tokenController.currentToken;
     return InkWell(
       onTap: () {
-        Get.to(() => GenerateTravelView());
+        if(token != '')
+          Get.to(() => GenerateTravelView());
+        if(token=='')
+          Get.to(()=>LoginView());
       },
       child: Container(
         height: 30.h,

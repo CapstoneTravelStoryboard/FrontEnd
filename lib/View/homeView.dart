@@ -23,8 +23,8 @@ class _HomeViewState extends State<HomeView> {
   int _currentPage = 0;
 
   final List<String> bannerImages = [
-    'images/guidebanner_1_3.png',
     'images/guidebanner2.png',
+    'images/guidebanner_1_3.png',
   ];
 
   @override
@@ -47,9 +47,9 @@ class _HomeViewState extends State<HomeView> {
     // Example: Navigate to a different screen or perform an action based on the index
     if (index == 0) {
       // Navigate to the first guide or perform a specific action
-      Get.to(() => CameraGuideView());
-    } else if (index == 1) {
       Get.to(() => TutorialView());
+    } else if (index == 1) {
+      Get.to(() => CameraGuideView());
     }
   }
   @override
